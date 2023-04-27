@@ -1,0 +1,97 @@
+# This is for content updates
+
+name: Deploy to Ounch Server
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+
+    # runs-on: ubuntu-latest
+    # runs-on: self-hosted
+    runs-on: [self-hosted, api-marc-ounch]
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    env:
+        APP_PORT: 3011
+        APP_LOG_PATH: "./public/logs"
+        MYSQL_USER: ${{ vars.OUNCH_DB_USER }}
+        MYSQL_PASSWORD: ${{ vars.OUNCH_DB_PASSWORD }}
+        MYSQL_DB: module_orders
+        MYSQL_HOSTNAME: ${{ vars.OUNCH_DB_HOST }}
+        MYSQL_PORT: 3306
+
+    steps:
+      - name: List PM2
+        run: pm2 list
+        env:
+          CI: true
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/checkout@v2
+
+      - name: Print commit ID and message
+        run: |
+          git show -s --format='%h %s'
+
+      - uses: nelonoel/branch-name@v1.0.1
+      - run: echo ${BRANCH_NAME}
+
+      - name: Expand env variables
+      # Use branch name for whatever purpose
+        run: |
+          echo BRANCH_NAME=${BRANCH_NAME}
+          echo "DATABASE_URL=mysql://$MYSQL_USER:$MYSQL_PASSWORD@$MYSQL_HOSTNAME:$MYSQL_PORT/$MYSQL_DB" >> $GITHUB_ENV
+          echo "APP_VERSION=onh.${BRANCH_NAME}.${{ github.run_number }}.${{ github.run_attempt }}" >> $GITHUB_ENV
+
+      - name: Print env variables
+        run: |
+          echo "APP_VERSION=${{ env.APP_VERSION }}"
+          echo "APP_PORT=${{ env.APP_PORT }}"
+          echo "DATABASE_URL=${{ env.DATABASE_URL }}"
+
+      - name: 'Create env file'
+        run: |
+          touch .env
+          echo "APP_VERSION=${{ env.APP_VERSION }}" >> .env
+          echo "APP_PORT=${{ env.APP_PORT }}" >> .env
+          echo "APP_LOG_PATH=${{ env.APP_LOG_PATH }}/" >> .env
+          echo "DATABASE_URL=${{ env.DATABASE_URL }}" >> .env
+          cat .env
+
+      - name: Install NPM dependencies
+        run: npm install --omit=dev
+
+      - name: Migrate DB Schema
+        run: npx prisma migrate deploy
+
+      - name: Migration Status
+        run: npx prisma migrate status
+
+      - name: Set Logs Path
+        run: ln -s /opt/ounch/logs/api-orders-module ${{ env.APP_LOG_PATH }}
+        env:
+          CI: true
+
+      - name: Reload PM2
+        run: pm2 reload api-orders-module
+        env:
+          CI: true
+
+      # - name: Send Telegram Message
+      #   uses: appleboy/telegram-action@master
+      #   with:
+      #     to: ${{ secrets.TELEGRAM_TO }}
+      #     token: ${{ secrets.TELEGRAM_TOKEN }}
+      #     message: |
+      #       MMIS API Gateway (API@Ounch)
+      #       -----------------------------------------------
+
+      #       Repository: ${{ github.repository }}
+      #       Version: ${{ env.VERSION }}
+      #       User: ${{ github.actor }}
+
+      #       See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}

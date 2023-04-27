@@ -3,6 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const PrimaryRoute = require('./routes/Primary');
+const StatusRoute = require('./routes/Status');
+// const QueryRoute = require('./routes/Query');
 const { useLogger } = require('./models/Logger');
 
 // Create Server
@@ -16,6 +18,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(useLogger);
 
 // Routes
+app.use('/status', StatusRoute);
+// app.use('/query', QueryRoute);
 app.use('/', PrimaryRoute);
 
 // Bind to Port and Run
