@@ -17,6 +17,11 @@ Prisma.$use(async (params, next) => {
     if (params.action == 'update') {
         params.args.data['updatedTs'] = getUnixTime(new Date());
     }
+    if (params.action == 'upsert') {
+        params.args.update['updatedTs'] = getUnixTime(new Date());
+        params.args.create['createdTs'] = getUnixTime(new Date());
+        params.args.create['updatedTs'] = getUnixTime(new Date());
+    }
 
     const result = await next(params)
     const after = Date.now();
