@@ -11,8 +11,8 @@ const { useLogger } = require('./models/Logger');
 const app = express();
 
 // Parsers
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Logger
 app.use(useLogger);
