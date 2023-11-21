@@ -11,6 +11,20 @@ datasource db {
 }
 
 
+generator erd {
+    provider = "prisma-erd-generator"
+    output = "prisma-erd.svg"
+    theme = "default"
+    includeRelationFromFields = true
+}
+
+generator dbml {
+    provider = "prisma-dbml-generator"
+    output = "."
+    outputName = "schema.dbml"
+    preview = true
+}
+
 
 // API Table
 model Logs {
