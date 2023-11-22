@@ -13,9 +13,15 @@ exports.MapValidationKeys = (dataset, method) => {
         if (method === 'UPDATE')
             item.optional();
 
-        if (type === 'string')
+        if (type === 'string') {
             item.isString().withMessage(`${name} must be a string`);
             item.isLength({ min: 3 }).withMessage(`${name} must be at least 3 chars long`);
+        }
+
+        if (type === 'country') {
+            item.isString().withMessage(`${name} must be ISO 3166-1 alpha-2 country code`);
+            item.isLength({ min: 2, max: 3 }).withMessage(`${name} must be at least 2 and max 3 chars long`);
+        }
 
         if (type === 'number')
             item.isNumeric().withMessage(`${name} must be a number`);
@@ -27,7 +33,7 @@ exports.MapValidationKeys = (dataset, method) => {
             item.isFloat().withMessage(`${name} must be a float`);
 
         if (type === 'phone')
-            item.matches(/^\d{9,12}$/).withMessage('mobile should be a valid 10/12 digit mobile number');
+            item.matches(/\+[0-9]{2,3}[0-9]{8,11}/).withMessage('mobile should be a valid 10/12 digit mobile number');
 
         if(type === 'email')
             item.isEmail().withMessage(`${name} must be a valid email`);
