@@ -11,6 +11,20 @@ datasource db {
 }
 
 
+generator erd {
+    provider = "prisma-erd-generator"
+    output = "prisma-erd.svg"
+    theme = "default"
+    includeRelationFromFields = true
+}
+
+generator dbml {
+    provider = "prisma-dbml-generator"
+    output = "."
+    outputName = "schema.dbml"
+    preview = true
+}
+
 
 // API Table
 model Logs {
@@ -31,4 +45,36 @@ model Logs {
     updatedAt DateTime? @db.DateTime @default(dbgenerated("NOW() ON UPDATE NOW()"))
 
     @@index([reqId])
+}
+
+
+model Activity {
+    id    Int     @id @default(autoincrement())
+
+    awsId  String? // Loose Relation
+    organizationId  String? // Loose Relation
+    withdrawalId  String? // Loose Relation
+
+    code  String? // Loose Relation
+
+    action  String? // CREATE, UPDATE, DELETE, BLOCK, UNBLOCK, VERIFY, UNVERIFY
+
+    entityId  String? // Loose Relation
+    entity  String? // CUSTOMER, ADDRESS, IDENTITY, CONTACT
+
+    description  String? @db.Text
+
+    actionBy  String?
+
+    request  String? @db.LongText
+    response  String? @db.LongText
+    props  String? @db.LongText
+
+    createdTs  Int?
+    updatedTs  Int?
+    createdAt DateTime @default(dbgenerated("NOW()")) @db.DateTime
+    updatedAt DateTime? @db.DateTime @default(dbgenerated("NOW() ON UPDATE NOW()"))
+
+    @@index([id])
+    @@index([awsId])
 }

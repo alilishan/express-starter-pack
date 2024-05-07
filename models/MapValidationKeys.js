@@ -13,11 +13,9 @@ exports.MapValidationKeys = (dataset, method) => {
         if (method === 'UPDATE')
             item.optional();
 
-
         if (type === 'string') {
             item.isString().withMessage(`${name} must be a string`);
-            // item.isLength({ min: minLength || 1 }).withMessage(`${name} must be at least 1 chars long`);
-            item.trim();
+            item.isLength({ min: minLength || 3 }).withMessage(`${name} must be at least 3 chars long`);
         }
 
         if (type === 'country') {
@@ -39,23 +37,6 @@ exports.MapValidationKeys = (dataset, method) => {
 
         if(type === 'email')
             item.isEmail().withMessage(`${name} must be a valid email`);
-
-        if (type === 'iso2') {
-            item.isISO31661Alpha2().withMessage(`${name} must be a valid ISO 3166-1 alpha-2 country code`);
-            item.trim();
-            item.toUpperCase();
-        }
-
-        if (type === 'iso3') {
-            item.isISO31661Alpha3().withMessage(`${name} must be a valid ISO 3166-1 alpha-3 country code`);
-            item.trim();
-            item.toUpperCase();
-        }
-
-        if (type === 'postcode') {
-            item.isPostalCode('any').withMessage(`${name} must be a valid postal code`);
-            item.trim();
-        }
 
         if (isIn)
             item.isIn(isIn).withMessage(`${name} must be one of ${isIn.join(', ')}`);
