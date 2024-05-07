@@ -2,21 +2,27 @@ const express=require('express');
 const { check } = require('express-validator');
 
 const router=express.Router();
-const { acceptedEnvironments } = require('../models/Constants');
-const primaryHandler = require('../handlers/primary');
+
+const { statuses } = require('../models/Constants');
+const createPrimary = require('../controllers/Primary/create');
+const { MapValidationKeys } = require('../models/MapValidationKeys');
+const { PrimaryRequiredKeys } = require('../models/Primary');
+
 
 router.post("/",
 
-    check('app_name')
-        .exists().withMessage('App name is required')
-        .notEmpty().withMessage('App name cannot be empty'),
+    ...MapValidationKeys(PrimaryRequiredKeys, 'CREATE'),
 
-    check('app_env')
+    check('name')
+        .exists().withMessage('Name is required')
+        .notEmpty().withMessage('Name cannot be empty'),
+
+    check('env')
         .optional()
-        .notEmpty().withMessage('App ENV cannot be empty')
-        .isIn([...acceptedEnvironments]).withMessage(`App ENV value can be either ${acceptedEnvironments.join(',')}`),
+        .notEmpty().withMessage('ENV cannot be empty')
+        .isIn(Object.keys(statuses.environments)).withMessage(`App ENV value can be either ${Object.keys(statuses.environments).join(',')}`),
 
-    primaryHandler
+    createPrimary
 );
 
 module.exports = router;

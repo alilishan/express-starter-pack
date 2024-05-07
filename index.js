@@ -1,10 +1,11 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 
 const PrimaryRoute = require('./routes/Primary');
 const StatusRoute = require('./routes/Status');
 // const QueryRoute = require('./routes/Query');
+
+
 const { useLogger } = require('./models/Logger');
 
 // Create Server
@@ -18,8 +19,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(useLogger);
 
 // Routes
-app.use('/status', StatusRoute);
 // app.use('/query', QueryRoute);
+app.use('/status', StatusRoute);
 app.use('/', PrimaryRoute);
 
 // Bind to Port and Run

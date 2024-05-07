@@ -1,38 +1,73 @@
-const { check, query } = require('express-validator');
-const { statuses } = require('./Constants');
+const { check, body } = require('express-validator');
 
-exports.queryPagination = [
-    query('skip')
-        .if(query('take').exists())
+exports.checkPagination = [
+    check('skip')
+        .if(check('take').exists())
         .exists().withMessage('Skip is needed for pagination')
         .isNumeric().withMessage('Skip must be a number')
         .notEmpty().withMessage('Skip cannot be empty'),
 
-    query('take')
-        .if(query('skip').exists())
+    check('take')
+        .if(check('skip').exists())
         .exists().withMessage('Take is needed for pagination')
         .isNumeric().withMessage('Take must be a number')
         .notEmpty().withMessage('Take cannot be empty'),
 
-    query('startTimestamp')
-        .if(query('endTimestamp').exists())
+    check('startTimestamp')
+        .if(check('endTimestamp').exists())
         .exists().withMessage('Start timestamp is needed for pagination')
         .isNumeric().withMessage('Start timestamp must be a number')
         .notEmpty().withMessage('Start timestamp cannot be empty'),
 
-    query('endTimestamp')
-        .if(query('startTimestamp').exists())
+    check('endTimestamp')
+        .if(check('startTimestamp').exists())
         .exists().withMessage('End timestamp is needed for pagination')
         .isNumeric().withMessage('End timestamp must be a number')
         .notEmpty().withMessage('End timestamp cannot be empty'),
 
-    query('order')
+    check('orderBy')
         .optional()
-        .notEmpty().withMessage('Order cannot be empty')
-        .isIn(['desc', 'asc']).withMessage(`Order value can be either ${['desc', 'asc'].join(', ')}`),
+        .if(check('orderSort').exists())
+        .exists().withMessage('Order by is needed for pagination')
+        .notEmpty().withMessage('Order by cannot be empty'),
 
-    query('status')
+    check('orderSort')
         .optional()
-        .notEmpty().withMessage('Status cannot be empty')
-        .isIn(Object.keys(statuses)).withMessage(`Status value can be either ${Object.keys(statuses).join(', ')}`),
+        .if(check('orderBy').exists())
+        .exists().withMessage('Order sort is needed for pagination')
+        .notEmpty().withMessage('Order sort cannot be empty')
+        .isIn(['desc', 'asc']).withMessage(`Order sort value can be either ${['desc', 'asc'].join(', ')}`),
+
+    check('include')
+        .optional()
+        .custom((value, { req }) => {
+            if (typeof value !== 'object') return false;
+
+            return isBooleanObject(value);
+
+        }).withMessage('include should be an object with keys that are booleans'),
 ]
+
+
+function isBooleanObject(obj) {
+    if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+        return false;
+    }
+
+    for (let key in obj) {
+        if (typeof obj[key] === 'boolean') {
+            continue;
+        } else if (typeof obj[key] === 'object') {
+            if (!isBooleanObject(obj[key])) {
+                return false;
+            }
+        } else {
+            if ((key === 'equals' || key === 'contains' && typeof obj[key] === 'string') || (key === 'gt' || key === 'lt' && typeof obj[key] === 'number')) {
+                continue;
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
